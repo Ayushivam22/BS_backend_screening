@@ -1,0 +1,19 @@
+{
+  "template_id": "net_banking_template",
+  "payment_group": "net_banking",
+  "event_type": "*",
+  "mappings": {
+    "event_type": "type",
+    "event_time": "event_time",
+    "order_id": "data.order.order_id",
+    "payment_id": "data.payment.cf_payment_id",
+    "payment_group": "data.payment.payment_group",
+    "payment_status": "data.payment.payment_status",
+    "amount": "data.payment.payment_amount",
+    "currency": "data.payment.payment_currency",
+    "customer_email": "data.customer_details.customer_email",
+    "customer_name": "data.customer_details.customer_name",
+    "bank_name": "data.payment.payment_method.netbanking.netbanking_bank_name",
+    "channel": "data.payment.payment_method.netbanking.channel"
+  }
+}

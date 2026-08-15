@@ -1,0 +1,21 @@
+{
+  "template_id": "credit_card_template",
+  "payment_group": "credit_card",
+  "event_type": "*",
+  "mappings": {
+    "event_type": "type",
+    "event_time": "event_time",
+    "order_id": "data.order.order_id",
+    "payment_id": "data.payment.cf_payment_id",
+    "payment_group": "data.payment.payment_group",
+    "payment_status": "data.payment.payment_status",
+    "amount": "data.payment.payment_amount",
+    "currency": "data.payment.payment_currency",
+    "customer_email": "data.customer_details.customer_email",
+    "customer_name": "data.customer_details.customer_name",
+    "card_network": "data.payment.payment_method.card.card_network",
+    "card_bank_name": "data.payment.payment_method.card.card_bank_name",
+    "card_type": "data.payment.payment_method.card.card_type",
+    "channel": "data.payment.payment_method.card.channel"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "type": "PAYMENT_USER_DROPPED_WEBHOOK",
+  "event_time": "2023-08-14T10:10:00+05:30",
+  "data": {
+    "order": {
+      "order_id": "order_nb_303",
+      "order_amount": 12000.00,
+      "order_currency": "INR",
+      "order_tags": null
+    },
+    "payment": {
+      "cf_payment_id": "cf_nb_777",
+      "payment_status": "USER_DROPPED",
+      "payment_amount": 12000.00,
+      "payment_currency": "INR",
+      "payment_message": "User closed net banking portal before authenticating",
+      "payment_time": "2023-08-14T10:10:00+05:30",
+      "bank_reference": "NB554433221",
+      "payment_group": "net_banking",
+      "payment_method": {
+        "netbanking": {
+          "channel": "nb",
+          "netbanking_bank_name": "ICICI Bank"
+        }
+      }
+    },
+    "customer_details": {
+      "customer_id": "cust_003",
+      "customer_name": "Charlie Davis",
+      "customer_email": "charlie@example.com",
+      "customer_phone": "9988776655"
+    },
+    "error_details": {
+      "error_code": "USER_DROPPED",
+      "error_description": "User cancelled the session",
+      "error_reason": "SESSION_ABORTED",
+      "error_source": "CUSTOMER"
+    }
+  }
+}
