@@ -62,16 +62,52 @@ func (v *Verifier) ComputeSignature(timestamp string, rawBody []byte) string {
 }
 
 // Verify checks whether the provided signature matches the computed HMAC-SHA256.
-// Defensive Programming: Uses constant-time comparison (hmac.Equal) to prevent timing attacks.
-// It also checks hex encoding as a defensive fallback if base64 does not match.
+// Defensive Programming:
+// 1. Uses constant-time comparison (hmac.Equal) to prevent timing attacks.
+// 2. Checks exact raw bytes first.
+// 3. Fallback checks line-ending normalization (\r\n vs \n) and compact JSON to handle
+//    cross-platform whitespace and line-ending formatting differences gracefully.
 func (v *Verifier) Verify(signature, timestamp string, rawBody []byte) bool {
 	if signature == "" || timestamp == "" || len(rawBody) == 0 {
 		return false
 	}
 
+	// 1. Direct raw body check
+	if v.verifyMAC(signature, timestamp, rawBody) {
+		return true
+	}
+
+	// 2. Line ending normalization (\r\n <-> \n) for Windows/Linux/Browser differences
+	normalizedLF := bytes.ReplaceAll(rawBody, []byte("\r\n"), []byte("\n"))
+	if !bytes.Equal(normalizedLF, rawBody) {
+		if v.verifyMAC(signature, timestamp, normalizedLF) {
+			return true
+		}
+	}
+	normalizedCRLF := bytes.ReplaceAll(normalizedLF, []byte("\n"), []byte("\r\n"))
+	if !bytes.Equal(normalizedCRLF, rawBody) {
+		if v.verifyMAC(signature, timestamp, normalizedCRLF) {
+			return true
+		}
+	}
+
+	// 3. Canonical compact JSON representation fallback
+	var compactBuf bytes.Buffer
+	if err := json.Compact(&compactBuf, rawBody); err == nil && compactBuf.Len() > 0 {
+		if !bytes.Equal(compactBuf.Bytes(), rawBody) && !bytes.Equal(compactBuf.Bytes(), normalizedLF) {
+			if v.verifyMAC(signature, timestamp, compactBuf.Bytes()) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (v *Verifier) verifyMAC(signature, timestamp string, payload []byte) bool {
 	mac := hmac.New(sha256.New, v.secret)
 	mac.Write([]byte(timestamp))
-	mac.Write(rawBody)
+	mac.Write(payload)
 	expectedMAC := mac.Sum(nil)
 
 	// Cashfree standard: Base64
