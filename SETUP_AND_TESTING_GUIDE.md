@@ -190,7 +190,7 @@ go test -v ./...
 
 ### C. Signature Generator Tool
 
-Use [`tools/signtool/main.go`](file:///c:/Users/AKS/Desktop/WebDev/BS_backend_screening/tools/signtool/main.go) to compute exact HMAC signatures for any sample payload or manual testing:
+Use [`tools/signtool/main.go`](file:BS_backend_screening/tools/signtool/main.go) to compute exact HMAC signatures for any sample payload or manual testing:
 
 ```bash
 # Compute signatures for all 3 sample files (Card, UPI, NetBanking):
@@ -274,7 +274,7 @@ go run tools/signtool/main.go '{"type":"PAYMENT_SUCCESS_WEBHOOK",...}'
 *(As required in Section 5 of the Boost Score assignment specification)*
 
 ### 1. How does the service decide, at runtime, which template applies to an incoming webhook?
-The template engine implements a 4-tier lookup hierarchy in [`engine/template.go`](file:///c:/Users/AKS/Desktop/WebDev/BS_backend_screening/engine/template.go#L128):
+The template engine implements a 4-tier lookup hierarchy in [`engine/template.go`](file:BS_backend_screening/engine/template.go#L128):
 1. **Exact match**: `payment_group:EVENT_TYPE` (e.g. `credit_card:PAYMENT_SUCCESS_WEBHOOK`)
 2. **Group wildcard**: `payment_group:*` (matches all events for that payment group)
 3. **Event wildcard**: `*:EVENT_TYPE` (matches a specific event across all groups)
@@ -284,10 +284,10 @@ The template engine implements a 4-tier lookup hierarchy in [`engine/template.go
 The engine automatically routes the payload to the global fallback template (`templates/default.json`), which extracts all standard core fields (`order_id`, `payment_id`, `amount`, `customer_email`, etc.). If no fallback template is present, it returns an explicit error resulting in `HTTP 422 Unprocessable Entity`.
 
 ### 3. What happens when a template references a field that is absent from the webhook payload?
-The dot-notation resolver [`resolvePath`](file:///c:/Users/AKS/Desktop/WebDev/BS_backend_screening/engine/template.go#L199) safely returns `nil`. The engine omits the key from `RawMappedFields` and assigns zero-values (`""` or `0.0`) to the typed struct without raising errors or panicking.
+The dot-notation resolver [`resolvePath`](file:BS_backend_screening/engine/template.go#L199) safely returns `nil`. The engine omits the key from `RawMappedFields` and assigns zero-values (`""` or `0.0`) to the typed struct without raising errors or panicking.
 
 ### 4. How would an operator — not a Go developer — add or change a template safely?
-An operator simply adds or edits a `.json` file in `./templates/` and restarts the service. At boot time, [`engine.NewEngine`](file:///c:/Users/AKS/Desktop/WebDev/BS_backend_screening/engine/template.go#L54) validates all JSON files and required fields (`template_id`, `payment_group`, `mappings`). If a template is malformed or invalid, the service **fails fast at startup** (`log.Fatalf`) with an actionable error message, ensuring invalid configurations never process live traffic.
+An operator simply adds or edits a `.json` file in `./templates/` and restarts the service. At boot time, [`engine.NewEngine`](file:BS_backend_screening/engine/template.go#L54) validates all JSON files and required fields (`template_id`, `payment_group`, `mappings`). If a template is malformed or invalid, the service **fails fast at startup** (`log.Fatalf`) with an actionable error message, ensuring invalid configurations never process live traffic.
 
 ---
 
@@ -299,8 +299,8 @@ Cashfree webhooks have a polymorphic structure where `data.payment.payment_metho
 - **`net_banking`**: `{ "netbanking": { "channel", "netbanking_bank_name" } }`
 
 ### Implementation Strategy:
-1. Envelope struct [`models.WebhookEvent`](file:///c:/Users/AKS/Desktop/WebDev/BS_backend_screening/models/event.go) declares `PaymentMethod` as `json.RawMessage`, deferring parsing until `payment_group` is identified.
-2. The [`parser.ParserRegistry`](file:///c:/Users/AKS/Desktop/WebDev/BS_backend_screening/parser/registry.go) looks up the parser function registered for that group.
+1. Envelope struct [`models.WebhookEvent`](file:BS_backend_screening/models/event.go) declares `PaymentMethod` as `json.RawMessage`, deferring parsing until `payment_group` is identified.
+2. The [`parser.ParserRegistry`](file:BS_backend_screening/parser/registry.go) looks up the parser function registered for that group.
 3. Parses raw bytes directly into the typed struct (`*models.CardPayment`, `*models.UPIPayment`, `*models.NetBankingPayment`).
 4. Type safety is preserved without large `switch` statements in application or transport layers.
 
@@ -311,7 +311,7 @@ Cashfree webhooks have a polymorphic structure where `data.payment.payment_metho
 Cashfree computes signatures as:
 $$\text{Signature} = \text{Base64}\Big(\text{HMAC-SHA256}\big(\text{Secret},\; \text{Timestamp} + \text{RawBody}\big)\Big)$$
 
-### Security Enforcement in [`security/security.go`](file:///c:/Users/AKS/Desktop/WebDev/BS_backend_screening/security/security.go):
+### Security Enforcement in [`security/security.go`](file:BS_backend_screening/security/security.go):
 1. **Raw Body Preservation**: The middleware reads raw bytes from `r.Body` *before* JSON unmarshaling.
 2. **Context Passing**: Restores `r.Body` via `io.NopCloser` and injects raw bytes into `r.Context()`.
 3. **Timing Attack Protection**: Uses `crypto/hmac.Equal` for constant-time comparison.
@@ -364,7 +364,7 @@ parser.Register("wallet", func(data []byte) (models.PaymentMethod, error) {
 }
 ```
 
-*This extensibility pattern is automated in [`pipeline/extensibility_test.go`](file:///c:/Users/AKS/Desktop/WebDev/BS_backend_screening/pipeline/extensibility_test.go).*
+*This extensibility pattern is automated in [`pipeline/extensibility_test.go`](file:BS_backend_screening/pipeline/extensibility_test.go).*
 
 ---
 
